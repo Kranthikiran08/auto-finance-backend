@@ -13,6 +13,10 @@ const vehicleSchema = new mongoose.Schema({
     vehicleNumber: { type: String, required: true, unique: true, maxlength: 10 },
     loanAg: { type: String, required: true },
     loanDate: { type: String, required: true }, // Storing as string from input date
+    
+    // ⭐ CRITICAL FIX: Added the guarantor field to the schema
+    guarantor: { type: String, default: 'N/A' }, 
+    
     maker: { type: String, required: true },
     classification: { type: String, required: true },
     model: { type: String, required: true },
@@ -38,14 +42,13 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST /api/vehicles - Create a new vehicle
+// POST /api/vehicles - Create a new vehicle (Saves all fields, including guarantor)
 router.post('/', async (req, res) => {
     try {
         const newVehicle = new Vehicle(req.body);
         await newVehicle.save();
         res.status(201).json(newVehicle);
     } catch (err) {
-        // Handle duplicate vehicle number error (if unique index is violated)
         if (err.code === 11000) {
             return res.status(400).json({ message: 'Vehicle number already exists.' });
         }
@@ -55,9 +58,6 @@ router.post('/', async (req, res) => {
 
 // PATCH /api/vehicles/:vehicleNumber/noc - Update NOC for a vehicle
 router.patch('/:vehicleNumber/noc', async (req, res) => {
-    // In a real application, you would validate the password here.
-    // For simplicity, the NOC generation logic (including password check) is left on the frontend for now,
-    // but a real server would check the password before updating.
     const { noc } = req.body;
     const { vehicleNumber } = req.params;
 
@@ -79,8 +79,6 @@ router.patch('/:vehicleNumber/noc', async (req, res) => {
 
 // DELETE /api/vehicles/:vehicleNumber - Delete a vehicle
 router.delete('/:vehicleNumber', async (req, res) => {
-    // In a real application, you would validate the admin password here.
-    // The frontend will still check the password and then send the request.
     const { vehicleNumber } = req.params;
 
     try {
