@@ -8,8 +8,8 @@ const vehicleSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     phone: { type: String, required: true },
     address: { type: String, required: true },
-    vehicleNumber: { type: String, required: true, unique: true, maxlength: 10 },
-    loanAg: { type: String, required: true }, // 6-character limit removed in schema validation
+    vehicleNumber: { type: String, required: true, unique: true }, // maxlength: 10 REMOVED
+    loanAg: { type: String, required: true },
     loanDate: { type: String, required: true },
     
     guarantor: { type: String, default: 'N/A' }, 
@@ -17,7 +17,6 @@ const vehicleSchema = new mongoose.Schema({
     maker: { type: String, required: true },
     classification: { type: String, required: true },
     model: { type: String, required: true },
-    // drivingLicense field REMOVED from here
     chassis: { type: String, required: true },
     engine: { type: String, required: true },
     rto: { type: String, required: true },
@@ -42,8 +41,6 @@ router.get('/', async (req, res) => {
 // POST /api/vehicles - Create a new vehicle
 router.post('/', async (req, res) => {
     try {
-        // We create the vehicle with the data sent from the frontend.
-        // Since drivingLicense is removed from frontend, it won't be in req.body.
         const newVehicle = new Vehicle(req.body);
         await newVehicle.save();
         res.status(201).json(newVehicle);
