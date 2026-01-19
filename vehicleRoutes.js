@@ -1,26 +1,23 @@
-// vehicleRoutes.js
-
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 
-// --- 1. Define the Vehicle Schema (The structure of data in the database) ---
+// --- 1. Define the Vehicle Schema ---
 const vehicleSchema = new mongoose.Schema({
     surname: { type: String, required: true },
     firstName: { type: String, required: true },
     phone: { type: String, required: true },
     address: { type: String, required: true },
     vehicleNumber: { type: String, required: true, unique: true, maxlength: 10 },
-    loanAg: { type: String, required: true },
-    loanDate: { type: String, required: true }, // Storing as string from input date
+    loanAg: { type: String, required: true }, // 6-character limit removed in schema validation
+    loanDate: { type: String, required: true },
     
-    // ⭐ CRITICAL FIX: Added the guarantor field to the schema
     guarantor: { type: String, default: 'N/A' }, 
     
     maker: { type: String, required: true },
     classification: { type: String, required: true },
     model: { type: String, required: true },
-    drivingLicense: { type: String, required: true },
+    // drivingLicense field REMOVED from here
     chassis: { type: String, required: true },
     engine: { type: String, required: true },
     rto: { type: String, required: true },
@@ -42,9 +39,11 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST /api/vehicles - Create a new vehicle (Saves all fields, including guarantor)
+// POST /api/vehicles - Create a new vehicle
 router.post('/', async (req, res) => {
     try {
+        // We create the vehicle with the data sent from the frontend.
+        // Since drivingLicense is removed from frontend, it won't be in req.body.
         const newVehicle = new Vehicle(req.body);
         await newVehicle.save();
         res.status(201).json(newVehicle);
@@ -65,7 +64,7 @@ router.patch('/:vehicleNumber/noc', async (req, res) => {
         const updatedVehicle = await Vehicle.findOneAndUpdate(
             { vehicleNumber: vehicleNumber },
             { $set: { noc: noc } },
-            { new: true } // Return the updated document
+            { new: true } 
         );
 
         if (!updatedVehicle) {
