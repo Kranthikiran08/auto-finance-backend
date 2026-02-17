@@ -8,7 +8,7 @@ const vehicleSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     phone: { type: String, required: true },
     address: { type: String, required: true },
-    vehicleNumber: { type: String, required: true, unique: true, maxlength: 10 },
+    vehicleNumber: { type: String, required: true, unique: true, maxlength: 20 },
     loanAg: { type: String, required: true }, // 6-character limit removed in schema validation
     loanDate: { type: String, required: true },
     
@@ -93,3 +93,4 @@ router.delete('/:vehicleNumber', async (req, res) => {
 });
 
 module.exports = router;
+
