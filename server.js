@@ -6,7 +6,7 @@ const cors = require('cors');
 const vehicleRoutes = require('./vehicleRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Updated to use process.env.PORT for Render
+const PORT = process.env.PORT || 3000;
 
 app.use(cors()); 
 app.use(bodyParser.json()); 
@@ -22,6 +22,7 @@ const settingsSchema = new mongoose.Schema({
 });
 const Settings = mongoose.model('Settings', settingsSchema);
 
+// GET Endpoint
 app.get('/api/settings/admin-password', async (req, res) => {
     try {
         const setting = await Settings.findOne({ key: 'admin_password' });
@@ -31,20 +32,34 @@ app.get('/api/settings/admin-password', async (req, res) => {
     }
 });
 
+// PATCH Endpoint - Updated verification logic
 app.patch('/api/settings/admin-password', async (req, res) => {
-    const { newPassword, secretAnswer } = req.body;
-    if (secretAnswer !== "VR SIDDHARTHA") {
-        return res.status(401).json({ message: "Incorrect secret answer" });
-    }
     try {
-        await Settings.findOneAndUpdate(
+        const { newPassword, secretAnswer } = req.body;
+
+        // Clean up the input string to avoid case/space matching issues
+        const cleanAnswer = secretAnswer ? secretAnswer.trim().toUpperCase() : "";
+
+        if (cleanAnswer !== "VR SIDDHARTHA") {
+            return res.status(401).json({ message: "Incorrect secret answer" });
+        }
+
+        if (!newPassword || newPassword.length < 4) {
+            return res.status(400).json({ message: "Password too short" });
+        }
+
+        const updatedSetting = await Settings.findOneAndUpdate(
             { key: 'admin_password' },
             { value: newPassword },
-            { upsert: true }
+            { upsert: true, new: true } // 'new: true' returns the modified document
         );
-        res.json({ message: "Password updated successfully" });
+
+        console.log("Password successfully changed in DB to:", newPassword);
+        return res.json({ message: "Password updated successfully" });
+
     } catch (err) {
-        res.status(500).json({ message: "Server error" });
+        console.error("Database Update Error:", err);
+        return res.status(500).json({ message: "Server error saving password" });
     }
 });
 
